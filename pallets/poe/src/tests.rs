@@ -222,7 +222,7 @@ mod transfer_claim {
 		}
 
 		#[test]
-		fn sender_is_not_ower() {
+		fn sender_is_not_owner() {
 			new_test_ext().execute_with(|| {
 				let claim: BoundedVec<u8, ConstU32<10>> = vec![0].try_into().unwrap();
 
