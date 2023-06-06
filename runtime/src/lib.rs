@@ -6,6 +6,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use frame_support::PalletId;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_insecure_randomness_collective_flip;
 use sp_api::impl_runtime_apis;
@@ -277,9 +278,17 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const KittiesPalletId: PalletId = PalletId(*b"sg/kitty");
+	pub const KittyPrice: Balance = EXISTENTIAL_DEPOSIT * 10;
+}
+
 impl pallet_kitties::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Randomness = Randomness;
+	type Currency = Balances;
+	type KittyPrice = KittyPrice;
+	type PalletId = KittiesPalletId;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
