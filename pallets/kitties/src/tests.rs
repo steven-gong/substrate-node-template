@@ -6,6 +6,10 @@ use sp_runtime::{
 	TokenError::{FundsUnavailable, NotExpendable},
 };
 
+const KITTY_A: [u8; 4] = *b"ktyA";
+const KITTY_B: [u8; 4] = *b"ktyB";
+const KITTY_C: [u8; 4] = *b"ktyC";
+
 mod create_kitty {
 	use super::*;
 
@@ -18,7 +22,7 @@ mod create_kitty {
 			let kitty_id = 0;
 			assert_eq!(Kitties::next_kitty_id(), kitty_id);
 
-			assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+			assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 
 			assert_eq!(
 				creator_initial_balance - KittyPrice::get(),
@@ -47,8 +51,8 @@ mod create_kitty {
 		#[test]
 		fn bad_origin() {
 			new_test_ext().execute_with(|| {
-				assert_noop!(Kitties::create(RuntimeOrigin::root()), BadOrigin);
-				assert_noop!(Kitties::create(RuntimeOrigin::none()), BadOrigin);
+				assert_noop!(Kitties::create(RuntimeOrigin::root(), KITTY_A), BadOrigin);
+				assert_noop!(Kitties::create(RuntimeOrigin::none(), KITTY_A), BadOrigin);
 			});
 		}
 
@@ -57,7 +61,7 @@ mod create_kitty {
 			new_test_ext().execute_with(|| {
 				crate::NextKittyId::<Test>::set(crate::KittyId::MAX);
 				assert_noop!(
-					Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)),
+					Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A),
 					Error::<Test>::KittyIdCannotOverflow
 				);
 			});
@@ -70,7 +74,10 @@ mod create_kitty {
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
 
 				assert_noop!(
-					Kitties::create(RuntimeOrigin::signed(ACCOUNT_WITH_ONLY_EXISTENTIAL_DEPOSIT)),
+					Kitties::create(
+						RuntimeOrigin::signed(ACCOUNT_WITH_ONLY_EXISTENTIAL_DEPOSIT),
+						KITTY_A
+					),
 					Token(FundsUnavailable)
 				);
 			});
@@ -83,7 +90,10 @@ mod create_kitty {
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
 
 				assert_noop!(
-					Kitties::create(RuntimeOrigin::signed(ACCOUNT_WITH_JUST_KITTY_PRICE_AMOUNT)),
+					Kitties::create(
+						RuntimeOrigin::signed(ACCOUNT_WITH_JUST_KITTY_PRICE_AMOUNT),
+						KITTY_A
+					),
 					Token(NotExpendable)
 				);
 			});
@@ -105,16 +115,17 @@ mod breed_kitty {
 			let kitties_account_initial_balance = Balances::free_balance(&Kitties::account_id());
 
 			assert_eq!(Kitties::next_kitty_id(), kitty_id_1);
-			assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+			assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 
 			assert_eq!(Kitties::next_kitty_id(), kitty_id_2);
-			assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+			assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_B));
 
 			assert_eq!(Kitties::next_kitty_id(), bred_kitty_id);
 			assert_ok!(Kitties::breed(
 				RuntimeOrigin::signed(VALID_KITTY_CREATOR),
 				kitty_id_1,
-				kitty_id_2
+				kitty_id_2,
+				KITTY_C
 			));
 
 			assert_eq!(
@@ -150,18 +161,18 @@ mod breed_kitty {
 			new_test_ext().execute_with(|| {
 				let kitty_id = 0;
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_B));
 
 				let bred_kitty_id = kitty_id + 2;
 				assert_eq!(Kitties::next_kitty_id(), bred_kitty_id);
 
 				assert_noop!(
-					Kitties::breed(RuntimeOrigin::none(), kitty_id, kitty_id + 1),
+					Kitties::breed(RuntimeOrigin::none(), kitty_id, kitty_id + 1, KITTY_C),
 					BadOrigin
 				);
 				assert_noop!(
-					Kitties::breed(RuntimeOrigin::root(), kitty_id, kitty_id + 1),
+					Kitties::breed(RuntimeOrigin::root(), kitty_id, kitty_id + 1, KITTY_C),
 					BadOrigin
 				);
 			});
@@ -172,14 +183,19 @@ mod breed_kitty {
 			new_test_ext().execute_with(|| {
 				let kitty_id = 0;
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_B));
 
 				let bred_kitty_id = kitty_id + 2;
 				assert_eq!(Kitties::next_kitty_id(), bred_kitty_id);
 
 				assert_noop!(
-					Kitties::breed(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id, kitty_id),
+					Kitties::breed(
+						RuntimeOrigin::signed(VALID_KITTY_CREATOR),
+						kitty_id,
+						kitty_id,
+						KITTY_C
+					),
 					Error::<Test>::SameKittyId
 				);
 			});
@@ -190,18 +206,28 @@ mod breed_kitty {
 			new_test_ext().execute_with(|| {
 				let kitty_id = 0;
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 
 				let bred_kitty_id = 1;
 				assert_eq!(Kitties::next_kitty_id(), bred_kitty_id);
 
 				assert_noop!(
-					Kitties::breed(RuntimeOrigin::signed(VALID_KITTY_CREATOR), 2, kitty_id),
+					Kitties::breed(
+						RuntimeOrigin::signed(VALID_KITTY_CREATOR),
+						2,
+						kitty_id,
+						KITTY_C
+					),
 					Error::<Test>::InvalidKittyId
 				);
 
 				assert_noop!(
-					Kitties::breed(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id, 2),
+					Kitties::breed(
+						RuntimeOrigin::signed(VALID_KITTY_CREATOR),
+						kitty_id,
+						2,
+						KITTY_C
+					),
 					Error::<Test>::InvalidKittyId
 				);
 			});
@@ -214,17 +240,18 @@ mod breed_kitty {
 				let kitty_id_2 = 1;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id_1);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id_2);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_B));
 
 				crate::NextKittyId::<Test>::set(crate::KittyId::MAX);
 				assert_noop!(
 					Kitties::breed(
 						RuntimeOrigin::signed(VALID_KITTY_CREATOR),
 						kitty_id_1,
-						kitty_id_2
+						kitty_id_2,
+						KITTY_C
 					),
 					Error::<Test>::KittyIdCannotOverflow
 				);
@@ -239,17 +266,18 @@ mod breed_kitty {
 				let bred_kitty_id = 2;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id_1);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id_2);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_B));
 
 				assert_eq!(Kitties::next_kitty_id(), bred_kitty_id);
 				assert_noop!(
 					Kitties::breed(
 						RuntimeOrigin::signed(ACCOUNT_WITH_ONLY_EXISTENTIAL_DEPOSIT),
 						kitty_id_1,
-						kitty_id_2
+						kitty_id_2,
+						KITTY_C
 					),
 					Token(FundsUnavailable)
 				);
@@ -264,17 +292,18 @@ mod breed_kitty {
 				let bred_kitty_id = 2;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id_1);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id_2);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_B));
 
 				assert_eq!(Kitties::next_kitty_id(), bred_kitty_id);
 				assert_noop!(
 					Kitties::breed(
 						RuntimeOrigin::signed(ACCOUNT_WITH_JUST_KITTY_PRICE_AMOUNT),
 						kitty_id_1,
-						kitty_id_2
+						kitty_id_2,
+						KITTY_C
 					),
 					Token(NotExpendable)
 				);
@@ -296,7 +325,7 @@ mod transfer_kitty {
 
 			let kitty_id = 0;
 			assert_eq!(Kitties::next_kitty_id(), kitty_id);
-			assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+			assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 			assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 
 			assert_ok!(Kitties::transfer(
@@ -353,7 +382,7 @@ mod transfer_kitty {
 			new_test_ext().execute_with(|| {
 				let kitty_id = 0;
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 
 				assert_noop!(
@@ -382,7 +411,7 @@ mod transfer_kitty {
 				let invalid_kitty_id = 100;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 
 				assert_noop!(
@@ -401,7 +430,7 @@ mod transfer_kitty {
 			new_test_ext().execute_with(|| {
 				let kitty_id = 0;
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 
 				assert_noop!(
@@ -425,7 +454,7 @@ mod put_kitty_on_sale {
 		new_test_ext().execute_with(|| {
 			let kitty_id = 0;
 			assert_eq!(Kitties::next_kitty_id(), kitty_id);
-			let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+			let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 			assert!(Kitties::kitty_on_sale(kitty_id).is_none());
 			let creator_initial_balance = Balances::free_balance(&VALID_KITTY_CREATOR);
@@ -448,7 +477,7 @@ mod put_kitty_on_sale {
 			new_test_ext().execute_with(|| {
 				let kitty_id = 0;
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_noop!(Kitties::sale(RuntimeOrigin::none(), kitty_id), BadOrigin);
 				assert_noop!(Kitties::sale(RuntimeOrigin::root(), kitty_id), BadOrigin);
@@ -462,7 +491,7 @@ mod put_kitty_on_sale {
 				let invalid_kitty_id = 100;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_noop!(
 					Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), invalid_kitty_id),
@@ -476,7 +505,7 @@ mod put_kitty_on_sale {
 			new_test_ext().execute_with(|| {
 				let kitty_id = 0;
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR)));
+				assert_ok!(Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A));
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 
 				assert_noop!(
@@ -494,7 +523,7 @@ mod put_kitty_on_sale {
 			new_test_ext().execute_with(|| {
 				let kitty_id = 0;
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_ok!(Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id));
 
@@ -516,7 +545,7 @@ mod buy_kitty {
 			let kitty_id = 0;
 
 			assert_eq!(Kitties::next_kitty_id(), kitty_id);
-			let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+			let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 			assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 			let _ = Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id);
@@ -558,7 +587,7 @@ mod buy_kitty {
 				let kitty_id = 0;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 				let _ = Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id);
@@ -575,7 +604,7 @@ mod buy_kitty {
 				let invalid_kitty_id = 100;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 				let _ = Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id);
@@ -593,7 +622,7 @@ mod buy_kitty {
 				let kitty_id = 0;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 				let _ = Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id);
@@ -612,7 +641,7 @@ mod buy_kitty {
 				let kitty_id = 0;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 				let _ = Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id);
@@ -630,7 +659,7 @@ mod buy_kitty {
 				let kitty_id = 0;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_noop!(
 					Kitties::buy(RuntimeOrigin::signed(VALID_KITTY_BUYER), kitty_id),
@@ -645,7 +674,7 @@ mod buy_kitty {
 				let kitty_id = 0;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 				let _ = Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id);
@@ -666,7 +695,7 @@ mod buy_kitty {
 				let kitty_id = 0;
 
 				assert_eq!(Kitties::next_kitty_id(), kitty_id);
-				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR));
+				let _ = Kitties::create(RuntimeOrigin::signed(VALID_KITTY_CREATOR), KITTY_A);
 
 				assert_eq!(Kitties::kitty_owner(kitty_id), Some(VALID_KITTY_CREATOR));
 				let _ = Kitties::sale(RuntimeOrigin::signed(VALID_KITTY_CREATOR), kitty_id);
