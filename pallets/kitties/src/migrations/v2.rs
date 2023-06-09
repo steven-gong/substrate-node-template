@@ -28,6 +28,10 @@ pub fn migrate<T: Config>() -> Weight {
 	);
 
 	if on_chain_storage_version > 1 || current_storage_version != 2 {
+		log::warn!(
+			target: "runtime::kitties",
+			"on_chain_storage_version > 1 || current_storage_version != 2",
+		);
 		return Weight::zero();
 	}
 
@@ -47,13 +51,18 @@ pub fn migrate<T: Config>() -> Weight {
 }
 
 fn v0_to_v2<T: Config>() {
+	log::info!(
+		target: "runtime::kitties",
+		"kitty is upgrading from v0 to v2",
+	);
+
 	let module = Kitties::<T>::module_prefix();
 	let item = Kitties::<T>::storage_prefix();
 	for (index, kitty) in
 		storage_key_iter::<KittyId, V0Kitty, Blake2_128Concat>(module, item).drain()
 	{
 		let new_kitty = Kitty { dna: kitty.0, name: *b"abcd0000" };
-		Kitties::<T>::insert(index, &new_kitty);
+		Kitties::<T>::insert(index, new_kitty);
 		log::info!(
 			target: "runtime::kitties",
 			"kitty `{:?}` is migrated from v0 to v2",
@@ -63,18 +72,27 @@ fn v0_to_v2<T: Config>() {
 }
 
 fn v1_to_v2<T: Config>() {
+	log::info!(
+		target: "runtime::kitties",
+		"kitty is upgrading from v1 to v2",
+	);
+
 	let module = Kitties::<T>::module_prefix();
 	let item = Kitties::<T>::storage_prefix();
 	for (index, kitty) in
 		storage_key_iter::<KittyId, V1Kitty, Blake2_128Concat>(module, item).drain()
 	{
-		let mut new_name: [u8; 8] = [0; 8];
+		// new_name[..kitty.name.len()].copy_from_slice(&kitty.name);
+		// new_name[kitty.name.len()..].copy_from_slice(&*b"0000");
 
-		new_name[..kitty.name.len()].copy_from_slice(&kitty.name);
-		new_name[kitty.name.len()..].copy_from_slice(&*b"0000");
+		let temp_name = [kitty.name,*b"0000"].concat();
+		let mut new_name: [u8; 8] = [0; 8];
+        for (i,_) in temp_name.iter().enumerate() {
+            new_name[i] = temp_name[i]
+        }
 
 		let new_kitty = Kitty { dna: kitty.dna, name: new_name };
-		Kitties::<T>::insert(index, &new_kitty);
+		Kitties::<T>::insert(index, new_kitty);
 
 		log::info!(
 			target: "runtime::kitties",
