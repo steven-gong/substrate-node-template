@@ -54,6 +54,11 @@ fn v0_to_v2<T: Config>() {
 	{
 		let new_kitty = Kitty { dna: kitty.0, name: *b"abcd0000" };
 		Kitties::<T>::insert(index, &new_kitty);
+		log::info!(
+			target: "runtime::kitties",
+			"kitty `{:?}` is migrated from v0 to v2",
+			new_kitty.name,
+		);
 	}
 }
 
@@ -70,5 +75,11 @@ fn v1_to_v2<T: Config>() {
 
 		let new_kitty = Kitty { dna: kitty.dna, name: new_name };
 		Kitties::<T>::insert(index, &new_kitty);
+
+		log::info!(
+			target: "runtime::kitties",
+			"kitty `{:?}` is migrated from v1 to v2",
+			kitty.name,
+		);
 	}
 }
