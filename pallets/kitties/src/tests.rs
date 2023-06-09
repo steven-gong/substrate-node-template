@@ -6,9 +6,9 @@ use sp_runtime::{
 	TokenError::{FundsUnavailable, NotExpendable},
 };
 
-const KITTY_A: [u8; 4] = *b"ktyA";
-const KITTY_B: [u8; 4] = *b"ktyB";
-const KITTY_C: [u8; 4] = *b"ktyC";
+const KITTY_A: [u8; 8] = *b"ktyA0000";
+const KITTY_B: [u8; 8] = *b"ktyB0000";
+const KITTY_C: [u8; 8] = *b"ktyC0000";
 
 mod create_kitty {
 	use super::*;

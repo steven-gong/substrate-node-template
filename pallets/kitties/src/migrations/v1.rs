@@ -1,3 +1,5 @@
+/// TODO: This file is going to removed once future version is created
+
 use crate::{Config, Kitties, Kitty, KittyId, Pallet};
 use frame_support::{
 	migration::storage_key_iter, pallet_prelude::*, storage::StoragePrefixedMap,
