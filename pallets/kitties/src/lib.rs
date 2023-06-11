@@ -45,7 +45,7 @@ pub mod pallet {
 		pub dna: [u8; 16],
 		pub name: [u8; 8],
 	}
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(2);
 
 	#[pallet::pallet]
 	#[pallet::storage_version(STORAGE_VERSION)]

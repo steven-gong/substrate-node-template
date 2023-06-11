@@ -82,17 +82,10 @@ fn v1_to_v2<T: Config>() {
 	for (index, kitty) in
 		storage_key_iter::<KittyId, V1Kitty, Blake2_128Concat>(module, item).drain()
 	{
-		// new_name[..kitty.name.len()].copy_from_slice(&kitty.name);
-		// new_name[kitty.name.len()..].copy_from_slice(&*b"0000");
-
-		let temp_name = [kitty.name,*b"0000"].concat();
 		let mut new_name: [u8; 8] = [0; 8];
-        for (i,_) in temp_name.iter().enumerate() {
-            new_name[i] = temp_name[i]
-        }
+		new_name[..kitty.name.len()].copy_from_slice(&kitty.name);
 
-		let new_kitty = Kitty { dna: kitty.dna, name: new_name };
-		Kitties::<T>::insert(index, new_kitty);
+		Kitties::<T>::insert(index, Kitty { dna: kitty.dna, name: new_name });
 
 		log::info!(
 			target: "runtime::kitties",
