@@ -16,11 +16,32 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
+use serde::{Deserialize, Deserializer};
+
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use core::convert::TryInto;
+	use frame_support::{pallet_prelude::*, inherent::Vec, sp_io::offchain_index};
 	use frame_system::pallet_prelude::*;
+	use sp_std::str;
+
+	const ONCHAIN_TX_KEY: &[u8] = b"template_pallet::indexing1";
+
+	#[derive(Debug, serde::Deserialize, Encode, Decode, Default)]
+	struct IndexingData{
+		#[serde(deserialize_with = "de_string_to_bytes")]
+		name: Vec<u8>, 
+		value: u32
+	}
+
+    pub fn de_string_to_bytes<'de, D>(de: D) -> Result<Vec<u8>, D::Error>
+        where
+        D: Deserializer<'de>,
+        {
+            let s: &str = Deserialize::deserialize(de)?;
+            Ok(s.as_bytes().to_vec())
+        }
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -49,7 +70,15 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Event documentation should end with an array that provides descriptive names for event
 		/// parameters. [something, who]
-		SomethingStored { something: u32, who: T::AccountId },
+		SomethingStored {
+			something: u32,
+			who: T::AccountId,
+		},
+		OffchainStored {
+			key: Vec<u8>,
+			number: u32,
+			who: T::AccountId,
+		},
 	}
 
 	// Errors inform users that something went wrong.
@@ -103,6 +132,24 @@ pub mod pallet {
 					Ok(())
 				},
 			}
+		}
+
+		#[pallet::call_index(2)]
+		#[pallet::weight({0})]
+		pub fn write_offchain_storage(origin: OriginFor<T>, number: u32) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			let key = ONCHAIN_TX_KEY.to_vec();
+			let data = IndexingData{
+				name: b"submit_number_unsigned".to_vec(), 
+				value: number
+			};
+			offchain_index::set(&key, &data.encode());
+
+			// Emit an event.
+			Self::deposit_event(Event::OffchainStored { key, number, who });
+
+			Ok(())
 		}
 	}
 }
