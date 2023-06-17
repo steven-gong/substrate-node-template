@@ -1,0 +1,19 @@
+{
+  "name": "get_offchain_storage_value",
+  "version": "1.0.0",
+  "description": "This page read offchain storage values",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist/index.js"
+  },
+  "author": "Xiaowen Gong",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  },
+  "dependencies": {
+    "@polkadot/api": "^10.9.1",
+    "@polkadot/types": "^10.9.1",
+    "typescript": "^5.1.3"
+  }
+}

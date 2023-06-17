@@ -9,3 +9,7 @@
 # direnv files
 .envrc
 .direnv
+
+node_modules
+
+frontend/get_offchain_storage_value.js
