@@ -26,5 +26,9 @@ Q3: 使用js sdk从浏览器frontend获取到前面写入Offchain Storage的数�
 TODO: decode the IndexingData
 
 Q4. Send unsigned tx with signed payload
+
+Offchain workers send an unsigned transaction to the chain every 10 blocks to upsert a latest price, 
+this interval is configured in runtime as `pub const UnsignedInterval: BlockNumber = 10;`.
+
 ![send_unsigned_tx_with_signed_payload](send_unsigned_tx_with_signed_payload.png)
 ![signed_payload_on_chain](signed_payload_on_chain.png)
