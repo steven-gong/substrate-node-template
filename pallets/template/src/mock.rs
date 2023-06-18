@@ -48,9 +48,16 @@ impl frame_system::Config for Test {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
+parameter_types! {
+	pub const UnsignedPriority: u64 = 1 << 20;
+}
+
 impl pallet_template::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
+	type MaxPrices = ConstU32<64>;
+	type UnsignedInterval = ConstU64<128>;
+	type UnsignedPriority = UnsignedPriority;
 }
 
 // Build genesis storage according to the mock runtime.
