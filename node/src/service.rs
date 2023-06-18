@@ -5,6 +5,7 @@ use sc_client_api::BlockBackend;
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_consensus_grandpa::SharedVoterState;
 pub use sc_executor::NativeElseWasmExecutor;
+use sc_keystore::LocalKeystore;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager, WarpSyncParams};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
@@ -77,6 +78,16 @@ pub fn new_partial(
 			executor,
 		)?;
 	let client = Arc::new(client);
+
+	if config.offchain_worker.enabled {
+		let keystore = keystore_container.keystore();
+		sp_keystore::Keystore::sr25519_generate_new(
+			&*keystore,
+			node_template_runtime::pallet_kitties::KEY_TYPE,
+			Some("//Alice"),
+		)
+		.expect("Creating key with account Alice should succeed.");
+	}
 
 	let telemetry = telemetry.map(|(worker, telemetry)| {
 		task_manager.spawn_handle().spawn("telemetry", None, worker.run());
