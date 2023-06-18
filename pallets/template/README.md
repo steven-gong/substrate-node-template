@@ -21,3 +21,6 @@ Q3: 使用js sdk从浏览器frontend获取到前面写入Offchain Storage的数�
 ![Encoded offchain storage data](encoded_offchain_storage_data.png)
 TODO: decode the IndexingData
 
+Q4. Send unsigned tx with signed payload
+![send_unsigned_tx_with_signed_payload](send_unsigned_tx_with_signed_payload.png)
+![signed_payload_on_chain](signed_payload_on_chain.png)
