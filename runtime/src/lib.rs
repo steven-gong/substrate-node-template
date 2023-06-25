@@ -47,6 +47,8 @@ pub use sp_runtime::{Perbill, Permill};
 
 /// Import the template pallet.
 pub use pallet_template;
+/// Import the poe pallet.
+pub use pallet_poe;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -273,6 +275,12 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+/// Configure the pallet-poe in pallets/poe.
+impl pallet_poe::Config for Runtime {
+	type MaxClaimLength = ConstU32<10>;
+	type RuntimeEvent = RuntimeEvent;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime
@@ -290,6 +298,8 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
+		// Include the custom logic from the pallet-poe in the runtime.
+		PoeModule: pallet_poe,
 	}
 );
 
