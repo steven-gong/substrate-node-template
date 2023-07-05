@@ -4,6 +4,7 @@ By following the official Substrate add trusted nodes [Tutorial](https://docs.su
 Chain specifications is generated and converted to raw format 
 
 [Chain Spec](./customSpec.json)
+
 [Chain Spec in raw format](./customSpecRaw.json)
 
 Validator Node: MyNode1
@@ -14,6 +15,10 @@ Validator Node: MyNode2
 
 
 # Setup a staging network (PoS: Babe & Grandpa)
+
+[Staging Chain Spec](./staging.json.json)
+
+[Staging Chain Spec in raw format](./staging-raw.json.json)
 
 
 
