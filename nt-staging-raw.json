@@ -1,10 +1,8 @@
 {
-  "name": "Staging Network",
-  "id": "staging_network",
+  "name": "Node Template Staging Network",
+  "id": "nt_staging_network",
   "chainType": "Live",
-  "bootNodes": [
-    "/ip4/127.0.0.1/tcp/30333/p2p/12D3KooWCH9WNjGNcRoVL9x5C4dSwQrVmA9fM6ag19xgfCc4QWd3"
-  ],
+  "bootNodes": [],
   "telemetryEndpoints": [
     [
       "/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F",

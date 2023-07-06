@@ -16,9 +16,9 @@ Validator Node: MyNode2
 
 # Setup a staging network (PoS: Babe & Grandpa)
 
-[Staging Chain Spec](./staging.json.json)
+[Node template Staging Chain Spec](./nt-staging.json)
 
-[Staging Chain Spec in raw format](./staging-raw.json.json)
+[Node Template Staging Chain Spec in raw format](./nt-staging-raw.json)
 
 
 

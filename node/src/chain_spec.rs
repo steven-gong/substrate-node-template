@@ -150,8 +150,8 @@ pub fn staging_network_config() -> ChainSpec {
 	let boot_nodes = vec![];
 
 	ChainSpec::from_genesis(
-		"Staging Network",
-		"staging_network",
+		"Node Template Staging Network",
+		"nt_staging_network",
 		ChainType::Live,
 		staging_network_config_genesis,
 		boot_nodes,
